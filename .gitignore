@@ -5,7 +5,12 @@
 *.egg-info
 dist
 build
+
 #word2vecmodel
 *.model
+
 #LSTM weights
 *.hdf5
+
+#embeddings
+*.npy
