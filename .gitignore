@@ -1,0 +1,11 @@
+# Python:
+*.py[cod]
+*.so
+*.egg
+*.egg-info
+dist
+build
+#word2vecmodel
+*.model
+#LSTM weights
+*.hdf5
