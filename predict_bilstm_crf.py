@@ -106,7 +106,7 @@ def macro_evaluation(pred_entity, true_entity):
 
 if __name__ == '__main__':
 
-    char_embedding_mat = np.load('data_wiki/char_embedding_matrix_zhenzhen.npy')
+    char_embedding_mat = np.load('data_wiki/char_embedding_matrix.npy')
 
     X_test = np.load('data_wiki/X_test.npy')
     # print(X_test, X_test.shape)
@@ -128,7 +128,7 @@ if __name__ == '__main__':
                            n_entity=7, optimizer='adam', batch_size=16, epochs=500)
     """加载model"""
 
-    model_file = '/home/curry/NER/NER_Chinese-Text-master/checkpoints/bilstm_crf_weights_best_zhenzhen.hdf5'
+    model_file = '/home/curry/NER/project001/checkpoints/bilstm_crf_weights_best_wiki.hdf5'
     ner_model.model.load_weights(model_file)
 
 

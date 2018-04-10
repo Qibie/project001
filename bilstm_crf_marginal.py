@@ -40,8 +40,8 @@ class BiLSTM_CRF():
 
         # crf = CRF(units=self.n_entity, learn_mode='join',
         #           test_mode='viterbi', sparse_target=False)
-        crf=CRF(units=self.n_entity,learn_mode='marginal',
-                    test_mode='marginal',sparse_target=False)
+        crf=CRF(units=self.n_entity,learn_mode='join',
+                    test_mode='viterbi',sparse_target=False)
         self.model.add(crf)
 
         self.model.compile(optimizer=self.optimizer,
