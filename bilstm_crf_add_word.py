@@ -1,20 +1,22 @@
 # coding=utf-8
 from keras.models import Model
-from keras.layers import Input, Embedding, Bidirectional, LSTM, Dropout,\
-                         TimeDistributed, Concatenate, Dense, GRU, Conv1D,\
-                         LeakyReLU
+from keras.layers import Input, Embedding, Bidirectional, LSTM, Dropout, \
+    TimeDistributed, Concatenate, Dense, GRU, Conv1D, \
+    LeakyReLU
 from keras.layers.normalization import BatchNormalization
 from crf_layer import CRF
+
 
 class BiLSTM_CRF():
     """
     两输入：main_input(字序列), auxiliary_input(对应的相同timestep的词序列)
     单输出：char_wise IOB label
     """
+
     def __init__(self, n_input_char, char_embedding_mat, n_input_word,
-                  keep_prob, n_lstm, keep_prob_lstm, n_entity,
-                  optimizer, batch_size, epochs, word_embedding_mat=None,
-                  n_filter=None, kernel_size=None,):
+                 keep_prob, n_lstm, keep_prob_lstm, n_entity,
+                 optimizer, batch_size, epochs, word_embedding_mat=None,
+                 n_filter=None, kernel_size=None, ):
         self.n_input_char = n_input_char
         self.char_embedding_mat = char_embedding_mat
         self.n_vocab_char = char_embedding_mat.shape[0]
@@ -34,23 +36,24 @@ class BiLSTM_CRF():
         self.batch_size = batch_size
         self.epochs = epochs
 
-        self.build()
-        self.build2()
-        self.build3()
+        # self.build()
+        # self.build2()
+        # self.build3()
+        self.build4()
 
     def build(self):
         # main
         char_input = Input(shape=(self.n_input_char,), name='main_input')
         char_embed = Embedding(input_dim=self.n_vocab_char,
-                          output_dim=self.n_embed_char,
-                          weights=[self.char_embedding_mat],
-                          input_length=self.n_input_char,
-                          mask_zero=True,
-                          trainable=True)(char_input)
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=True,
+                               trainable=True)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         bilstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
-                                    dropout=self.keep_prob_lstm,
-                                    recurrent_dropout=self.keep_prob_lstm)
+                                   dropout=self.keep_prob_lstm,
+                                   recurrent_dropout=self.keep_prob_lstm)
                                )(char_embed_drop)
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
@@ -62,8 +65,8 @@ class BiLSTM_CRF():
                                trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
-                                  dropout=self.keep_prob_lstm,
-                                  recurrent_dropout=self.keep_prob_lstm)
+                                 dropout=self.keep_prob_lstm,
+                                 recurrent_dropout=self.keep_prob_lstm)
                              )(word_embed_drop)
 
         # concatenation
@@ -104,8 +107,8 @@ class BiLSTM_CRF():
                            strides=1, padding='same',
                            kernel_initializer='he_normal')(word_embed_drop)
         word_conv = BatchNormalization(axis=-1)(word_conv)
-        word_conv = LeakyReLU(alpha=1/5.5)(word_conv)
-        #concatenation
+        word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
+        # concatenation
         concat = Concatenate(axis=-1)([char_embed, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
@@ -120,11 +123,10 @@ class BiLSTM_CRF():
         output = crf(bilstm)
 
         self.model2 = Model(inputs=[char_input, word_input],
-                           outputs=output)
+                            outputs=output)
         self.model2.compile(optimizer=self.optimizer,
-                           loss=crf.loss_function,
-                           metrics=[crf.accuracy])
-
+                            loss=crf.loss_function,
+                            metrics=[crf.accuracy])
 
     def build3(self):
         # main
@@ -164,10 +166,50 @@ class BiLSTM_CRF():
                   test_mode='viterbi', sparse_target=False)
         output = crf(concat_drop)
         self.model3 = Model(inputs=[char_input, word_input],
-                          outputs=output)
+                            outputs=output)
         self.model3.compile(optimizer=self.optimizer,
-                           loss=crf.loss_function,
-                           metrics=[crf.accuracy])
+                            loss=crf.loss_function,
+                            metrics=[crf.accuracy])
+
+    def build4(self):
+        char_input = Input(shape=(self.n_input_char,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=True,
+                               trainable=True)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        # 使用cnn提取字符级特征
+        char_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size, strides=1, padding='same',
+                           kernel_initializer='he_normal')(char_embed_drop)
+        char_conv = BatchNormalization(axis=-1)(char_conv)
+        char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
+        # auxiliary
+        word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
+        word_embed = Embedding(input_dim=self.n_vocab_word,
+                               output_dim=self.n_embed_word,
+                               weights=[self.word_embedding_mat],
+                               input_length=self.n_input_word,
+                               mask_zero=True,
+                               trainable=True)(word_input)
+        word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
+                                 dropout=self.keep_prob_lstm,
+                                 recurrent_dropout=self.keep_prob_lstm)
+                             )(word_embed_drop)
+        # concatentaion
+        concat = Concatenate(axis=-1)[char_conv, lstm]
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(concat_drop)
+        self.model4 = Model(inputs=[char_input, word_input],
+                            outputs=output)
+        self.model4.compile(optimizer=self.optimizer,
+                            loss=crf.loss_function,
+                            metrics=[crf.accuracy])
 
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
@@ -181,5 +223,10 @@ class BiLSTM_CRF():
 
     def train3(self, X_train, y_train, X_dev, y_dev, cb):
         self.model3.fit(X_train, y_train, batch_size=self.batch_size,
+                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        callbacks=cb)
+
+    def train4(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model4.fit(X_train, y_train, batch_size=self.batch_size,
                         epochs=self.epochs, validation_data=(X_dev, y_dev),
                         callbacks=cb)
