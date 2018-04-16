@@ -177,7 +177,7 @@ class BiLSTM_CRF():
                                output_dim=self.n_embed_char,
                                weights=[self.char_embedding_mat],
                                input_length=self.n_input_char,
-                               mask_zero=True,
+                               mask_zero=False,
                                trainable=True)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # 使用cnn提取字符级特征
