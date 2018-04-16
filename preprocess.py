@@ -51,7 +51,7 @@ def get_char2object():
     :return:
     """
     char2vec = {}
-    f = open('/home/curry/NER/NER_Chinese-Text-master/wiki_100.utf8.txt') # load pre-trained word embedding
+    f = open('/home/curry/NER/project001/data/character.txt') # load pre-trained word embedding
     i = 0
     for line in f:
         tep_list = line.split()

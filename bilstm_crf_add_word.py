@@ -124,12 +124,61 @@ class BiLSTM_CRF():
                            loss=crf.loss_function,
                            metrics=[crf.accuracy])
 
+
+    def build3(self):
+        # main
+        char_input = Input(shape=(self.n_input_char,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=True,
+                               trainable=True)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        bilstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
+                                   dropout=self.keep_prob_lstm,
+                                   recurrent_dropout=self.keep_prob_lstm)
+                               )(char_embed_drop)
+
+        # auxiliary
+        word_input = Input(shape=(self.n_input_word,))
+        word_embed = Embedding(input_dim=self.n_vocab_word,
+                               output_dim=self.n_embed_word,
+                               input_length=self.n_input_word,
+                               weights=[self.word_embedding_mat],
+                               mask_zero=False,
+                               trainable=True)(word_input)
+        word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        # 使用CNN提取word的n_gram特征
+        word_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size,
+                           strides=1, padding='same',
+                           kernel_initializer='he_normal')(word_embed_drop)
+        word_conv = BatchNormalization(axis=-1)(word_conv)
+        word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
+        # concatenation
+        concat = Concatenate(axis=-1)([bilstm, word_conv])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(concat_drop)
+        self.model3 = Model(inputs=[char_input, word_input],
+                          outputs=output)
+        self.model3.compile(optimizer=self.optimizer,
+                           loss=crf.loss_function,
+                           metrics=[crf.accuracy])
+
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
                        epochs=self.epochs, validation_data=(X_dev, y_dev),
                        callbacks=cb)
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model2.fit(X_train, y_train, batch_size=self.batch_size,
+                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        callbacks=cb)
+
+    def train3(self, X_train, y_train, X_dev, y_dev, cb):
         self.model2.fit(X_train, y_train, batch_size=self.batch_size,
                         epochs=self.epochs, validation_data=(X_dev, y_dev),
                         callbacks=cb)

@@ -42,5 +42,5 @@ cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
       ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, mode='min',
                         epsilon=1e-4, cooldown=2, min_lr=1e-8)]
 
-ner_model.train2([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
+ner_model.train3([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
 # ner_model.train([X_train,train_add],y_train,[X_dev,dev_add],y_dev,cb)
