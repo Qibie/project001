@@ -36,6 +36,7 @@ class BiLSTM_CRF():
 
         self.build()
         self.build2()
+        self.build3()
 
     def build(self):
         # main
@@ -179,6 +180,6 @@ class BiLSTM_CRF():
                         callbacks=cb)
 
     def train3(self, X_train, y_train, X_dev, y_dev, cb):
-        self.model2.fit(X_train, y_train, batch_size=self.batch_size,
+        self.model3.fit(X_train, y_train, batch_size=self.batch_size,
                         epochs=self.epochs, validation_data=(X_dev, y_dev),
                         callbacks=cb)
