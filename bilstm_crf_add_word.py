@@ -199,7 +199,7 @@ class BiLSTM_CRF():
                                  recurrent_dropout=self.keep_prob_lstm)
                              )(word_embed_drop)
         # concatentaion
-        concat = Concatenate(axis=-1)[char_conv, lstm]
+        concat = Concatenate(axis=-1)([char_conv, lstm])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         crf = CRF(units=self.n_entity, learn_mode='join',
