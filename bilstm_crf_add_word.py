@@ -2,7 +2,7 @@
 from keras.models import Model
 from keras.layers import Input, Embedding, Bidirectional, LSTM, Dropout, \
     TimeDistributed, Concatenate, Dense, GRU, Conv1D, \
-    LeakyReLU
+    LeakyReLU,MaxPooling1D
 from keras.layers.normalization import BatchNormalization
 from crf_layer import CRF
 
@@ -16,7 +16,7 @@ class BiLSTM_CRF():
     def __init__(self, n_input_char, char_embedding_mat, n_input_word,
                  keep_prob, n_lstm, keep_prob_lstm, n_entity,
                  optimizer, batch_size, epochs, word_embedding_mat=None,
-                 n_filter=None, kernel_size=None, ):
+                 n_filter=None, kernel_size=None, pool_size=52):
         self.n_input_char = n_input_char
         self.char_embedding_mat = char_embedding_mat
         self.n_vocab_char = char_embedding_mat.shape[0]
@@ -30,6 +30,7 @@ class BiLSTM_CRF():
         self.keep_prob_lstm = keep_prob_lstm
         self.n_filter = n_filter
         self.kernel_size = kernel_size
+        self.pool_size=pool_size
 
         self.n_entity = n_entity
         self.optimizer = optimizer
@@ -37,7 +38,7 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
         # self.build()
-        # self.build2()
+        self.build2()
         # self.build3()
         self.build4()
 
@@ -181,10 +182,11 @@ class BiLSTM_CRF():
                                trainable=True)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # 使用cnn提取字符级特征
-        char_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size, strides=1, padding='same',
-                           kernel_initializer='he_normal')(char_embed_drop)
+        char_conv = Conv1D(filters=self.n_filter, kernel_size=self.kernel_size, strides=1, padding='same',
+                           kernel_initializer='he_normal',activation='tanh')(char_embed_drop)
         char_conv = BatchNormalization(axis=-1)(char_conv)
-        char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
+        #char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
+
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
         word_embed = Embedding(input_dim=self.n_vocab_word,
