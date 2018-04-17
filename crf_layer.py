@@ -141,7 +141,7 @@ class CRF(Layer):
                  sparse_target=False,
                  use_boundary=True,
                  use_bias=True,
-                 activation='linear',
+                 activation='tanh',
                  kernel_initializer='glorot_uniform',
                  chain_initializer='orthogonal',
                  bias_initializer='zeros',
