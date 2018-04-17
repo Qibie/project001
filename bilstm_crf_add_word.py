@@ -185,7 +185,7 @@ class BiLSTM_CRF():
         char_conv = Conv1D(filters=self.n_filter, kernel_size=self.kernel_size, strides=1, padding='same',
                            kernel_initializer='he_normal',activation='tanh')(char_embed_drop)
         char_conv = BatchNormalization(axis=-1)(char_conv)
-        #char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
+        char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
 
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
@@ -196,17 +196,18 @@ class BiLSTM_CRF():
                                mask_zero=True,
                                trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        # concatentaion
+        concat=Concatenate(axis=-1)([char_conv,word_embed_drop])
+        concat_drop=TimeDistributed(Dropout(self.keep_prob))(concat)
+
         lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
                                  dropout=self.keep_prob_lstm,
                                  recurrent_dropout=self.keep_prob_lstm)
-                             )(word_embed_drop)
-        # concatentaion
-        concat = Concatenate(axis=-1)([char_conv, lstm])
-        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+                             )(concat_drop)
 
         crf = CRF(units=self.n_entity, learn_mode='join',
                   test_mode='viterbi', sparse_target=False)
-        output = crf(concat_drop)
+        output = crf(lstm)
         self.model4 = Model(inputs=[char_input, word_input],
                             outputs=output)
         self.model4.compile(optimizer=self.optimizer,
