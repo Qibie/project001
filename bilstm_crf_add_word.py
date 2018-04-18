@@ -196,18 +196,20 @@ class BiLSTM_CRF():
                                mask_zero=True,
                                trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
-        # concatentaion
-        concat=Concatenate(axis=-1)([char_conv,word_embed_drop])
-        concat_drop=TimeDistributed(Dropout(self.keep_prob))(concat)
-
         lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
                                  dropout=self.keep_prob_lstm,
                                  recurrent_dropout=self.keep_prob_lstm)
-                             )(concat_drop)
+                             )(word_embed_drop)
+        # concatentaion
+        concat = Concatenate(axis=-1)([char_conv, lstm])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
-        crf = CRF(units=self.n_entity, learn_mode='join',
-                  test_mode='viterbi', sparse_target=False)
-        output = crf(lstm)
+
+
+
+        crf = CRF(units=self.n_entity, learn_mode='marginal',
+                  test_mode='marginal', sparse_target=False)
+        output = crf(concat_drop)
         self.model4 = Model(inputs=[char_input, word_input],
                             outputs=output)
         self.model4.compile(optimizer=self.optimizer,
