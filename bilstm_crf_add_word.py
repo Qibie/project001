@@ -183,7 +183,7 @@ class BiLSTM_CRF():
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # 使用cnn提取字符级特征
         char_conv = Conv1D(filters=self.n_filter, kernel_size=self.kernel_size, strides=1, padding='same',
-                           kernel_initializer='he_normal',activation='tanh')(char_embed_drop)
+                           kernel_initializer='he_normal')(char_embed_drop)
         char_conv = BatchNormalization(axis=-1)(char_conv)
         char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
 
@@ -205,8 +205,8 @@ class BiLSTM_CRF():
                                  recurrent_dropout=self.keep_prob_lstm)
                              )(concat_drop)
 
-        crf = CRF(units=self.n_entity, learn_mode='join',
-                  test_mode='viterbi', sparse_target=False)
+        crf = CRF(units=self.n_entity, learn_mode='marginal',
+                  test_mode='marginal', sparse_target=False)
         output = crf(lstm)
         self.model4 = Model(inputs=[char_input, word_input],
                             outputs=output)
