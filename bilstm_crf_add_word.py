@@ -2,10 +2,13 @@
 from keras.models import Model
 from keras.layers import Input, Embedding, Bidirectional, LSTM, Dropout, \
     TimeDistributed, Concatenate, Dense, GRU, Conv1D, \
-    LeakyReLU,MaxPooling1D
+    LeakyReLU,MaxPooling1D,Flatten,concatenate
 from keras.layers.normalization import BatchNormalization
 from crf_layer import CRF
-
+from keras.layers.core import *
+from keras.layers.recurrent import LSTM
+from keras.models import *
+from keras.layers import merge
 
 class BiLSTM_CRF():
     """
@@ -38,9 +41,29 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
         # self.build()
-        self.build2()
+        #self.build2()
         # self.build3()
-        self.build4()
+        # self.build4()
+        self.build_attention()
+
+    def attention_3d_block(self,inputs):
+        # if True, the attention vector is shared across the input_dimensions where the attention is applied.
+        SINGLE_ATTENTION_VECTOR = False
+        APPLY_ATTENTION_BEFORE_LSTM = False
+        # inputs.shape = (batch_size, time_steps, input_dim)
+        input_dim = int(inputs.shape[2])
+        time_steps=int(inputs.shape[1])
+        a = Permute((2, 1))(inputs)
+        # a = Reshape((input_dim, ))(a)  # this line is not useful. It's just to know which dimension is what.
+        a = Dense(time_steps, activation='softmax')(a)
+        if SINGLE_ATTENTION_VECTOR:
+            a = Lambda(lambda x: K.mean(x, axis=1), name='dim_reduction')(a)
+            a = RepeatVector(input_dim)(a)
+        a_probs = Permute((2, 1), name='attention_vec')(a)
+        output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
+        return output_attention_mul
+
+
 
     def build(self):
         # main
@@ -186,7 +209,8 @@ class BiLSTM_CRF():
                            kernel_initializer='he_normal')(char_embed_drop)
         char_conv = BatchNormalization(axis=-1)(char_conv)
         char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
-
+        char_pool=MaxPooling1D(self.pool_size)(char_conv)
+        char_flaten=Flatten()(char_pool)
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
         word_embed = Embedding(input_dim=self.n_vocab_word,
@@ -196,8 +220,10 @@ class BiLSTM_CRF():
                                mask_zero=True,
                                trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
-        # concatentaion
-        concat=Concatenate(axis=-1)([char_conv,word_embed_drop])
+
+
+        #concatentation
+        concat=concatenate([char_flaten,word_embed_drop])
         concat_drop=TimeDistributed(Dropout(self.keep_prob))(concat)
 
         lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
@@ -213,6 +239,61 @@ class BiLSTM_CRF():
         self.model4.compile(optimizer=self.optimizer,
                             loss=crf.loss_function,
                             metrics=[crf.accuracy])
+
+
+
+
+
+    def build_attention(self):
+        # main
+        char_input = Input(shape=(self.n_input_char,))
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               input_length=self.n_input_char,
+                               weights=[self.char_embedding_mat],
+                               mask_zero=False,
+                               trainable=True)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        # auxiliary
+        word_input = Input(shape=(self.n_input_word,))
+        word_embed = Embedding(input_dim=self.n_vocab_word,
+                               output_dim=self.n_embed_word,
+                               input_length=self.n_input_word,
+                               weights=[self.word_embedding_mat],
+                               mask_zero=False,
+                               trainable=True)(word_input)
+        word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        # 使用CNN提取word的n_gram特征
+        word_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size,
+                           strides=1, padding='same',
+                           kernel_initializer='he_normal')(word_embed_drop)
+        word_conv = BatchNormalization(axis=-1)(word_conv)
+        word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
+        # concatenation
+        concat = Concatenate(axis=-1)([char_embed, word_conv])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+
+        attention = self.attention_3d_block(concat_drop)
+
+
+        bilstm = Bidirectional(LSTM(units=self.n_lstm,
+                                    return_sequences=True,
+                                    dropout=self.keep_prob_lstm,
+                                    recurrent_dropout=self.keep_prob_lstm)
+                               )(attention)
+
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(bilstm)
+
+        self.model_attention = Model(inputs=[char_input, word_input],
+                            outputs=output)
+        self.model_attention.compile(optimizer=self.optimizer,
+                            loss=crf.loss_function,
+                            metrics=[crf.accuracy])
+
+
+
 
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
@@ -231,5 +312,9 @@ class BiLSTM_CRF():
 
     def train4(self, X_train, y_train, X_dev, y_dev, cb):
         self.model4.fit(X_train, y_train, batch_size=self.batch_size,
+                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        callbacks=cb)
+    def train_attention(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model_attention.fit(X_train, y_train, batch_size=self.batch_size,
                         epochs=self.epochs, validation_data=(X_dev, y_dev),
                         callbacks=cb)
