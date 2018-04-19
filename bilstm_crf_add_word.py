@@ -282,8 +282,8 @@ class BiLSTM_CRF():
                                     recurrent_dropout=self.keep_prob_lstm)
                                )(concat_drop)
 
-        crf = CRF(units=self.n_entity, learn_mode='marginal',
-                  test_mode='marginal', sparse_target=False)
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
         output = crf(attention)
 
         self.model_attention = Model(inputs=[char_input, word_input],
