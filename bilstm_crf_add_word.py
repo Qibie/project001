@@ -41,7 +41,7 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
         # self.build()
-        # self.build2()
+        #self.build2()
         # self.build3()
         # self.build4()
         self.build_attention()
@@ -52,7 +52,7 @@ class BiLSTM_CRF():
         APPLY_ATTENTION_BEFORE_LSTM = False
         # inputs.shape = (batch_size, time_steps, input_dim)
         input_dim = int(inputs.shape[2])
-        time_steps=200
+        time_steps=int(inputs.shape[1])
         a = Permute((2, 1))(inputs)
         # a = Reshape((input_dim, ))(a)  # this line is not useful. It's just to know which dimension is what.
         a = Dense(time_steps, activation='softmax')(a)
@@ -133,7 +133,7 @@ class BiLSTM_CRF():
         word_conv = BatchNormalization(axis=-1)(word_conv)
         word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
         # concatenation
-        concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
+        concat = Concatenate(axis=-1)([char_embed, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
@@ -273,7 +273,7 @@ class BiLSTM_CRF():
         concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
-        #attention = self.attention_3d_block(concat_drop)
+        attention = self.attention_3d_block(concat_drop)
 
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
@@ -281,7 +281,6 @@ class BiLSTM_CRF():
                                     dropout=self.keep_prob_lstm,
                                     recurrent_dropout=self.keep_prob_lstm)
                                )(concat_drop)
-        attention=self.attention_3d_block(bilstm)
 
         crf = CRF(units=self.n_entity, learn_mode='marginal',
                   test_mode='marginal', sparse_target=False)
