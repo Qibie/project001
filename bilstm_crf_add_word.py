@@ -41,10 +41,10 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
         # self.build()
-        #self.build2()
+        self.build2()
         # self.build3()
         # self.build4()
-        self.build_attention()
+        # self.build_attention()
 
     def attention_3d_block(self,inputs):
         # if True, the attention vector is shared across the input_dimensions where the attention is applied.
@@ -274,7 +274,6 @@ class BiLSTM_CRF():
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         attention = self.attention_3d_block(concat_drop)
-
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
                                     return_sequences=True,
