@@ -88,7 +88,7 @@ class BiLSTM_CRF():
                                mask_zero=True,
                                trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
-        lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
+        lstm = Bidirectional(LSTM(self.n_lstm, return_sequences=True,
                                  dropout=self.keep_prob_lstm,
                                  recurrent_dropout=self.keep_prob_lstm)
                              )(word_embed_drop)
@@ -280,7 +280,7 @@ class BiLSTM_CRF():
                                     return_sequences=True,
                                     dropout=self.keep_prob_lstm,
                                     recurrent_dropout=self.keep_prob_lstm)
-                               )(concat_drop)
+                               )(attention)
 
         crf = CRF(units=self.n_entity, learn_mode='marginal',
                   test_mode='marginal', sparse_target=False)
