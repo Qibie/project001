@@ -103,10 +103,10 @@ if __name__ == '__main__':
     word_embedding_mat = np.load('data/word_embedding_matrix.npy')
     # word_embedding_mat = np.random.randn(157142, 200)
 
-    X_test = np.load('data/X_test.npy')
-    test_add = np.load('data/word_test_add.npy') # add word_embedding
+    X_test = np.load('data/X_dev.npy')
+    test_add = np.load('data/word_dev_add.npy') # add word_embedding
     # print(X_test, X_test.shape)
-    y_test = np.load('data/y_test.npy')
+    y_test = np.load('data/y_dev.npy')
 
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
     # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
