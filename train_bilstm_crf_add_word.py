@@ -19,7 +19,7 @@ dev_add = np.load('data/word_dev_add.npy')
 y_train = np.load('data/y_train.npy')
 y_dev = np.load('data/y_dev.npy')
 
-adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
+adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
 # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
 
 # ner_model = BiLSTM_CRF(n_input_char=200, char_embedding_mat=char_embedding_mat,
@@ -30,7 +30,7 @@ ner_model = BiLSTM_CRF(n_input_char=200, char_embedding_mat=char_embedding_mat,
                        n_input_word=200, word_embedding_mat=word_embedding_mat,
                        keep_prob=0.7, n_lstm=256, keep_prob_lstm=0.6, n_entity=7,
                        optimizer=adam, batch_size=32, epochs=10,
-                       n_filter=52, kernel_size=3, pool_size=52)
+                       n_filter=128, kernel_size=3, pool_size=52)
 cp_folder, cp_file = 'checkpoints', 'bilstm_crf_add_word_weights_best_attention.hdf5'
 log_filepath = os.getcwd() + '/logs/bilstm_crf_add_word_summaries'
 
@@ -42,5 +42,5 @@ cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
       ReduceLROnPlateau(monitor='val_loss', factor=0.2, patience=3, mode='min',
                         epsilon=1e-4, cooldown=2, min_lr=1e-8)]
 
-ner_model.train2([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
+ner_model.train_attention([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
 # ner_model.train([X_train,train_add],y_train,[X_dev,dev_add],y_dev,cb)

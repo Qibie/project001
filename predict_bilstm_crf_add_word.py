@@ -103,10 +103,10 @@ if __name__ == '__main__':
     word_embedding_mat = np.load('data/word_embedding_matrix.npy')
     # word_embedding_mat = np.random.randn(157142, 200)
 
-    X_test = np.load('data/X_train.npy')
-    test_add = np.load('data/word_train_add.npy') # add word_embedding
+    X_test = np.load('data/X_test.npy')
+    test_add = np.load('data/word_test_add.npy') # add word_embedding
     # print(X_test, X_test.shape)
-    y_test = np.load('data/y_train.npy')
+    y_test = np.load('data/y_test.npy')
 
     adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
     # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
@@ -117,9 +117,9 @@ if __name__ == '__main__':
                        optimizer=adam, batch_size=32, epochs=10,
                        n_filter=128, kernel_size=3, pool_size=52)
     model_file = 'checkpoints/bilstm_crf_add_word_weights_best.hdf5'
-    ner_model.model2.load_weights(model_file)
+    ner_model.model_attention.load_weights(model_file)
 
-    y_pred = ner_model.model2.predict([X_test[:, :], test_add[:, :]])
+    y_pred = ner_model.model_attention.predict([X_test[:, :], test_add[:, :]])
     # print(pred.shape) # (4635, 574, 7)
 
     char2vec, n_char, n_embed, char2index = p.get_char2object()

@@ -41,10 +41,10 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
         # self.build()
-        self.build2()
+        # self.build2()
         # self.build3()
         # self.build4()
-        # self.build_attention()
+        self.build_attention()
 
     def attention_3d_block(self,inputs):
         # if True, the attention vector is shared across the input_dimensions where the attention is applied.
@@ -231,8 +231,8 @@ class BiLSTM_CRF():
                                  recurrent_dropout=self.keep_prob_lstm)
                              )(concat_drop)
 
-        crf = CRF(units=self.n_entity, learn_mode='marginal',
-                  test_mode='marginal', sparse_target=False)
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
         output = crf(lstm)
         self.model4 = Model(inputs=[char_input, word_input],
                             outputs=output)
@@ -274,15 +274,16 @@ class BiLSTM_CRF():
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         attention = self.attention_3d_block(concat_drop)
+        attention_drop=TimeDistributed(Dropout(self.keep_prob))(attention)
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
                                     return_sequences=True,
                                     dropout=self.keep_prob_lstm,
                                     recurrent_dropout=self.keep_prob_lstm)
-                               )(attention)
+                               )(attention_drop)
 
-        crf = CRF(units=self.n_entity, learn_mode='marginal',
-                  test_mode='marginal', sparse_target=False)
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
         output = crf(bilstm)
 
         self.model_attention = Model(inputs=[char_input, word_input],
