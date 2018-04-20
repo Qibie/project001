@@ -3,7 +3,6 @@
   <component name="ChangeListManager">
     <list default="true" id="94e96ea1-90d8-4be9-8686-49dbec1c2c8b" name="Default" comment="">
       <change beforePath="$PROJECT_DIR$/bilstm_crf_add_word.py" beforeDir="false" afterPath="$PROJECT_DIR$/bilstm_crf_add_word.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/logs/bilstm_crf_add_word_summaries/events.out.tfevents.1524205210.CURRY" beforeDir="false" afterPath="$PROJECT_DIR$/logs/bilstm_crf_add_word_summaries/events.out.tfevents.1524205210.CURRY" afterDir="false" />
     </list>
     <ignored path="project001.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -32,8 +31,8 @@
       <file leaf-file-name="bilstm_crf_add_word.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bilstm_crf_add_word.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="285">
-              <caret line="332" column="42" selection-start-line="332" selection-start-column="42" selection-end-line="332" selection-end-column="42" />
+            <state relative-caret-position="336">
+              <caret line="332" column="46" selection-start-line="332" selection-start-column="46" selection-end-line="332" selection-end-column="46" />
               <folding>
                 <element signature="e#15#45#0" expanded="true" />
                 <element signature="e#2632#4738#0" />
@@ -795,8 +794,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/bilstm_crf_add_word.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="285">
-          <caret line="332" column="42" selection-start-line="332" selection-start-column="42" selection-end-line="332" selection-end-column="42" />
+        <state relative-caret-position="336">
+          <caret line="332" column="46" selection-start-line="332" selection-start-column="46" selection-end-line="332" selection-end-column="46" />
           <folding>
             <element signature="e#15#45#0" expanded="true" />
             <element signature="e#2632#4738#0" />
