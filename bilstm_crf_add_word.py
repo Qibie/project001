@@ -42,8 +42,8 @@ class BiLSTM_CRF():
 
 
         # self.build_simple()
-        self.build()
-        # self.build2()
+        # self.build()
+        self.build2()
         # self.build3()
         # self.build4()
         # self.build_attention()
