@@ -41,9 +41,9 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
 
-        self.build_simple()
+        # self.build_simple()
         # self.build()
-        # self.build2()
+        self.build2()
         # self.build3()
         # self.build4()
         # self.build_attention()
@@ -69,14 +69,14 @@ class BiLSTM_CRF():
 
     def build_simple(self):
         # main
-        # char_input = Input(shape=(self.n_input_char,), name='main_input')
-        # char_embed = Embedding(input_dim=self.n_vocab_char,
-        #                        output_dim=self.n_embed_char,
-        #                        weights=[self.char_embedding_mat],
-        #                        input_length=self.n_input_char,
-        #                        mask_zero=True,
-        #                        trainable=False)(char_input)
-        # char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        char_input = Input(shape=(self.n_input_char,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=True,
+                               trainable=False)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
         word_embed = Embedding(input_dim=self.n_vocab_word,
@@ -87,17 +87,17 @@ class BiLSTM_CRF():
                                trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         # concatenation
-        # concat = Concatenate(axis=-1)([char_embed_drop, word_embed_drop])
-        # concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+        concat = Concatenate(axis=-1)([char_embed_drop, word_embed_drop])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
         blstm=Bidirectional(LSTM(self.n_lstm, return_sequences=True,
                                    dropout=self.keep_prob_lstm,
-                                   recurrent_dropout=self.keep_prob_lstm))(word_embed_drop)
+                                   recurrent_dropout=self.keep_prob_lstm))(concat_drop)
 
         crf = CRF(units=self.n_entity, learn_mode='join',
                   test_mode='viterbi', sparse_target=False)
         output = crf(blstm)
 
-        self.model_simple = Model(inputs=[word_input],
+        self.model_simple = Model(inputs=[char_input, word_input],
                            outputs=output)
         self.model_simple.compile(optimizer=self.optimizer,
                            loss=crf.loss_function,
@@ -128,7 +128,7 @@ class BiLSTM_CRF():
                                mask_zero=True,
                                trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
-        lstm = Bidirectional(LSTM(self.n_lstm, return_sequences=True,
+        lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
                                   dropout=self.keep_prob_lstm,
                                   recurrent_dropout=self.keep_prob_lstm)
                              )(word_embed_drop)
@@ -174,10 +174,10 @@ class BiLSTM_CRF():
         # word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
 
         # concatenation
-        concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
+        concat = Concatenate(axis=-1)([char_embed, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
-        bilstm = Bidirectional(LSTM(units=self.n_lstm,
+        bilstm = Bidirectional(GRU(units=self.n_lstm,
                                 return_sequences=True,
                                 dropout=self.keep_prob_lstm,
                                 recurrent_dropout=self.keep_prob_lstm)
@@ -333,7 +333,7 @@ class BiLSTM_CRF():
         self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
                         epochs=self.epochs,validation_split=0.3,
                         callbacks=cb)
-        # self.model_simple.save('checkpoints/model.hdf5')
+        self.model_simple.save('checkpoints/model.hdf5')
 
 
 
@@ -345,7 +345,7 @@ class BiLSTM_CRF():
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
         self.model2.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs, validation_split=0.3,
+                        epochs=self.epochs, validation_split=0.1,
                         callbacks=cb)
 
     def train3(self, X_train, y_train, X_dev, y_dev, cb):
