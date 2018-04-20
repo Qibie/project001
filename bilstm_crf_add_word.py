@@ -40,11 +40,13 @@ class BiLSTM_CRF():
         self.batch_size = batch_size
         self.epochs = epochs
 
+
+        self.build_simple()
         # self.build()
         # self.build2()
         # self.build3()
         # self.build4()
-        self.build_attention()
+        # self.build_attention()
 
     def attention_3d_block(self, inputs):
         # if True, the attention vector is shared across the input_dimensions where the attention is applied.
@@ -62,6 +64,45 @@ class BiLSTM_CRF():
         a_probs = Permute((2, 1), name='attention_vec')(a)
         output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
         return output_attention_mul
+
+
+
+    def build_simple(self):
+        # main
+        char_input = Input(shape=(self.n_input_char,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=True,
+                               trainable=True)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        # auxiliary
+        word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
+        word_embed = Embedding(input_dim=self.n_vocab_word,
+                               output_dim=self.n_embed_word,
+                               weights=[self.word_embedding_mat],
+                               input_length=self.n_input_word,
+                               mask_zero=True,
+                               trainable=True)(word_input)
+        word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        # concatenation
+        concat = Concatenate(axis=-1)([char_embed_drop, word_embed_drop])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+        blstm=Bidirectional(LSTM(self.n_lstm, return_sequences=True,
+                                   dropout=self.keep_prob_lstm,
+                                   recurrent_dropout=self.keep_prob_lstm))(concat_drop)
+
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(blstm)
+
+        self.model_simple = Model(inputs=[char_input, word_input],
+                           outputs=output)
+        self.model_simple.compile(optimizer=self.optimizer,
+                           loss=crf.loss_function,
+                           metrics=[crf.accuracy])
+
 
     def build(self):
         # main
@@ -104,7 +145,7 @@ class BiLSTM_CRF():
         self.model.compile(optimizer=self.optimizer,
                            loss=crf.loss_function,
                            metrics=[crf.accuracy])
-
+        print(self.model.summary())
     def build2(self):
         # main
         char_input = Input(shape=(self.n_input_char,))
@@ -286,10 +327,19 @@ class BiLSTM_CRF():
                                      loss=crf.loss_function,
                                      metrics=[crf.accuracy])
 
+
+    def train_simple(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
+                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        callbacks=cb)
+
+
+
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
-                       epochs=self.epochs, validation_data=(X_dev, y_dev),
+                       epochs=self.epochs,
                        callbacks=cb)
+        self.model.evaluate(X_dev,y_dev)
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
         self.model2.fit(X_train, y_train, batch_size=self.batch_size,
