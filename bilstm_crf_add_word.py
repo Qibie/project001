@@ -174,7 +174,7 @@ class BiLSTM_CRF():
         # word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
 
         # concatenation
-        concat = Concatenate(axis=-1)([char_embed, word_conv])
+        concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
