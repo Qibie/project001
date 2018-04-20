@@ -1,10 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="94e96ea1-90d8-4be9-8686-49dbec1c2c8b" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/predict_bilstm_crf_add_word.py" beforeDir="false" afterPath="$PROJECT_DIR$/predict_bilstm_crf_add_word.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/train_bilstm_crf_add_word.py" beforeDir="false" afterPath="$PROJECT_DIR$/train_bilstm_crf_add_word.py" afterDir="false" />
-    </list>
+    <list default="true" id="94e96ea1-90d8-4be9-8686-49dbec1c2c8b" name="Default" comment="" />
     <ignored path="project001.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
@@ -29,13 +26,18 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="bilstm_crf_add_word.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="bilstm_crf_add_word.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/bilstm_crf_add_word.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="479">
-              <caret line="335" column="46" selection-start-line="335" selection-start-column="46" selection-end-line="335" selection-end-column="46" />
+            <state relative-caret-position="318">
+              <caret line="335" column="47" lean-forward="true" selection-start-line="335" selection-start-column="9" selection-end-line="335" selection-end-column="47" />
               <folding>
                 <element signature="e#15#45#0" expanded="true" />
+                <element signature="e#2632#4738#0" />
+                <element signature="e#4754#6916#0" />
+                <element signature="e#6948#9118#0" />
+                <element signature="e#9150#11392#0" />
+                <element signature="e#11433#13812#0" />
               </folding>
             </state>
           </provider>
@@ -62,7 +64,7 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="predict_bilstm_crf_add_word.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="predict_bilstm_crf_add_word.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/predict_bilstm_crf_add_word.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="427">
@@ -400,11 +402,6 @@
           <url>file://$PROJECT_DIR$/predict_bilstm_crf_marginal.py</url>
           <line>134</line>
           <option name="timeStamp" value="1" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
-          <url>file://$PROJECT_DIR$/bilstm_crf_add_word.py</url>
-          <line>110</line>
-          <option name="timeStamp" value="11" />
         </line-breakpoint>
       </breakpoints>
       <default-breakpoints>
@@ -773,16 +770,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bilstm_crf_add_word.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="479">
-          <caret line="335" column="46" selection-start-line="335" selection-start-column="46" selection-end-line="335" selection-end-column="46" />
-          <folding>
-            <element signature="e#15#45#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/train_bilstm_crf_add_word.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="357">
@@ -799,6 +786,21 @@
           <caret line="113" column="39" selection-start-line="113" selection-start-column="27" selection-end-line="113" selection-end-column="39" />
           <folding>
             <element signature="e#16#34#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/bilstm_crf_add_word.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="318">
+          <caret line="335" column="47" lean-forward="true" selection-start-line="335" selection-start-column="9" selection-end-line="335" selection-end-column="47" />
+          <folding>
+            <element signature="e#15#45#0" expanded="true" />
+            <element signature="e#2632#4738#0" />
+            <element signature="e#4754#6916#0" />
+            <element signature="e#6948#9118#0" />
+            <element signature="e#9150#11392#0" />
+            <element signature="e#11433#13812#0" />
           </folding>
         </state>
       </provider>
