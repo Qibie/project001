@@ -102,6 +102,7 @@ class BiLSTM_CRF():
         self.model_simple.compile(optimizer=self.optimizer,
                            loss=crf.loss_function,
                            metrics=[crf.accuracy])
+        print(self.model_simple.summary())
 
 
     def build(self):
@@ -330,8 +331,9 @@ class BiLSTM_CRF():
 
     def train_simple(self, X_train, y_train, X_dev, y_dev, cb):
         self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        epochs=self.epochs,
                         callbacks=cb)
+        self.model_simple.evaluate(X_dev,y_dev)
 
 
 
