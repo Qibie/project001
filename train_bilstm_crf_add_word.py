@@ -50,4 +50,4 @@ cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
                         epsilon=1e-4, cooldown=2, min_lr=1e-8)]
 # ner_model.train2([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
 ner_model.train([X_train,train_add],y_train,[X_dev,dev_add],y_dev,cb)
-print(ner_model.model_simple.evaluate([X_test,test_add],y_test))
+print(ner_model.model.evaluate([X_test,test_add],y_test))
