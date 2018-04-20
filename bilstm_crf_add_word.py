@@ -190,7 +190,7 @@ class BiLSTM_CRF():
         self.model2 = Model(inputs=[char_input, word_input],
                         outputs=output)
         self.model2.compile(optimizer=self.optimizer,
-                            loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+                            loss='categorical_crossentropy', metrics=['accuracy'])
         print(self.model2.summary())
 
 
