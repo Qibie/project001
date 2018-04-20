@@ -182,16 +182,17 @@ class BiLSTM_CRF():
                                 dropout=self.keep_prob_lstm,
                                 recurrent_dropout=self.keep_prob_lstm)
                            )(concat_drop)
-
-        crf = CRF(units=self.n_entity, learn_mode='join',
-              test_mode='viterbi', sparse_target=False)
-        output = crf(bilstm)
-
+        output = TimeDistributed(Dense(len(self.n_entity), activation='softmax'))(bilstm)
+        # crf = CRF(units=self.n_entity, learn_mode='join',
+        #       test_mode='viterbi', sparse_target=False)
+        # output = crf(bilstm)
+        #
         self.model2 = Model(inputs=[char_input, word_input],
                         outputs=output)
         self.model2.compile(optimizer=self.optimizer,
-                        loss=crf.loss_function,
-                        metrics=[crf.accuracy])
+                            loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+        print(self.model2.summary())
+
 
     def build3(self):
         # main
