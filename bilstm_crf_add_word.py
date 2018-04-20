@@ -330,7 +330,7 @@ class BiLSTM_CRF():
 
 
     def train_simple(self, X_train, y_train, X_dev, y_dev, cb):
-        self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
+        self.model_simple.fit(X_dev, y_dev, batch_size=self.batch_size,
                         epochs=self.epochs,
                         callbacks=cb)
         self.model_simple.save('checkpoints/model.hdf5')
