@@ -182,7 +182,7 @@ class BiLSTM_CRF():
                                 dropout=self.keep_prob_lstm,
                                 recurrent_dropout=self.keep_prob_lstm)
                            )(concat_drop)
-        output = TimeDistributed(Dense(len(self.n_entity), activation='softmax'))(bilstm)
+        output = TimeDistributed(Dense(self.n_entity, activation='softmax'))(bilstm)
         # crf = CRF(units=self.n_entity, learn_mode='join',
         #       test_mode='viterbi', sparse_target=False)
         # output = crf(bilstm)
