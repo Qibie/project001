@@ -75,7 +75,7 @@ class BiLSTM_CRF():
                                weights=[self.char_embedding_mat],
                                input_length=self.n_input_char,
                                mask_zero=True,
-                               trainable=True)(char_input)
+                               trainable=False)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # auxiliary
         word_input = Input(shape=(self.n_input_word,), name='auxiliary_input')
@@ -84,7 +84,7 @@ class BiLSTM_CRF():
                                weights=[self.word_embedding_mat],
                                input_length=self.n_input_word,
                                mask_zero=True,
-                               trainable=True)(word_input)
+                               trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         # concatenation
         concat = Concatenate(axis=-1)([char_embed_drop, word_embed_drop])
