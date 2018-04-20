@@ -41,9 +41,9 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
 
-        # self.build_simple()
+        self.build_simple()
         # self.build()
-        self.build2()
+        # self.build2()
         # self.build3()
         # self.build4()
         # self.build_attention()
