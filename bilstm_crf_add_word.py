@@ -113,7 +113,7 @@ class BiLSTM_CRF():
                                weights=[self.char_embedding_mat],
                                input_length=self.n_input_char,
                                mask_zero=True,
-                               trainable=True)(char_input)
+                               trainable=False)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         bilstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
                                    dropout=self.keep_prob_lstm,
@@ -126,7 +126,7 @@ class BiLSTM_CRF():
                                weights=[self.word_embedding_mat],
                                input_length=self.n_input_word,
                                mask_zero=True,
-                               trainable=True)(word_input)
+                               trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         lstm = Bidirectional(LSTM(self.n_lstm, return_sequences=True,
                                   dropout=self.keep_prob_lstm,
