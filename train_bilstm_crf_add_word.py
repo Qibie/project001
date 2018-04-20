@@ -19,6 +19,13 @@ dev_add = np.load('data/word_dev_add.npy')
 y_train = np.load('data/y_train.npy')
 y_dev = np.load('data/y_dev.npy')
 
+X_test = np.load('data/X_test.npy')
+test_add = np.load('data/word_test_add.npy')  # add word_embedding
+# print(X_test, X_test.shape)
+y_test = np.load('data/y_test.npy')
+
+
+
 adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
 # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
 
@@ -43,3 +50,4 @@ cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
                         epsilon=1e-4, cooldown=2, min_lr=1e-8)]
 # ner_model.train2([X_train, train_add], y_train, [X_dev, dev_add], y_dev, cb)
 ner_model.train_simple([X_train,train_add],y_train,[X_dev,dev_add],y_dev,cb)
+print(ner_model.model_simple.evaluate([X_test,test_add],y_test))
