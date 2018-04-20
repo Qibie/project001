@@ -41,8 +41,8 @@ class BiLSTM_CRF():
         self.epochs = epochs
 
 
-        self.build_simple()
-        # self.build()
+        # self.build_simple()
+        self.build()
         # self.build2()
         # self.build3()
         # self.build4()
@@ -331,7 +331,7 @@ class BiLSTM_CRF():
 
     def train_simple(self, X_train, y_train, X_dev, y_dev, cb):
         self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs,validation_split=0.7,
+                        epochs=self.epochs,validation_split=0.3,
                         callbacks=cb)
         self.model_simple.save('checkpoints/model.hdf5')
 
@@ -340,13 +340,12 @@ class BiLSTM_CRF():
 
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
-                       epochs=self.epochs,
+                       epochs=self.epochs,validation_split=0.3,
                        callbacks=cb)
-        self.model.evaluate(X_dev,y_dev)
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
         self.model2.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs, validation_data=(X_dev, y_dev),
+                        epochs=self.epochs, validation_split=0.3,
                         callbacks=cb)
 
     def train3(self, X_train, y_train, X_dev, y_dev, cb):
