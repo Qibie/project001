@@ -151,6 +151,7 @@ class BiLSTM_CRF():
         self.model.compile(optimizer=self.optimizer,
                            loss='categorical_crossentropy', metrics=['accuracy'])
         print(self.model.summary())
+
     def build2(self):
         # main
         char_input = Input(shape=(self.n_input_char,))

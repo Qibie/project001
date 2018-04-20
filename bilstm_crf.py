@@ -22,7 +22,7 @@ class BiLSTM_CRF():
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.epochs = epochs
-        self.build()
+        self.build_attention()
 
 
 
@@ -70,35 +70,40 @@ class BiLSTM_CRF():
                            loss=crf.loss_function,
                            metrics=[crf.accuracy])
 
-        def build_attention(self):
-            self.model = Sequential()
+    def build_attention(self):
+        char_input = Input(shape=(self.n_input,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab,
+                                 output_dim=self.n_embed,
+                                 input_length=self.n_input,
+                                 weights=[self.embedding_mat],
+                                 mask_zero=False,
+                                 trainable=True)(char_input)
+        char_drop=Dropout(self.keep_prob)(char_embed)
+        attention=self.attention_3d_block(char_drop)
 
-            self.model.add(Embedding(input_dim=self.n_vocab,
-                                     output_dim=self.n_embed,
-                                     input_length=self.n_input,
-                                     weights=[self.embedding_mat],
-                                     mask_zero=True,
-                                     trainable=True))
-            self.model.add(Dropout(self.keep_prob))
+        blstm=Bidirectional(LSTM(self.n_lstm, return_sequences=True,
+                                           dropout=self.keep_prob_lstm,
+                                           recurrent_dropout=self.keep_prob_lstm))(attention)
 
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
 
-            self.model.add(Bidirectional(GRU(self.n_lstm, return_sequences=True,
-                                             dropout=self.keep_prob_lstm,
-                                             recurrent_dropout=self.keep_prob_lstm)
-                                         ))
-            self.model.add(TimeDistributed(Dropout(self.keep_prob)))
+        output=crf(blstm)
 
-            # crf = CRF(units=self.n_entity, learn_mode='join',
-            #           test_mode='viterbi', sparse_target=False)
-            crf = CRF(units=self.n_entity, learn_mode='join',
-                      test_mode='viterbi', sparse_target=False)
-            self.model.add(crf)
+        self.model_attention = Model(inputs=[char_input],
+                            outputs=output)
 
-            self.model.compile(optimizer=self.optimizer,
-                               loss=crf.loss_function,
-                               metrics=[crf.accuracy])
+        self.model_attention.compile(optimizer=self.optimizer,
+                           loss=crf.loss_function,
+                           metrics=[crf.accuracy])
+        print(self.model_attention.summary())
 
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
+                       epochs=self.epochs, validation_data=(X_dev, y_dev),
+                       callbacks=cb)
+
+    def train_attention(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model_attention.fit(X_train, y_train, batch_size=self.batch_size,
                        epochs=self.epochs, validation_data=(X_dev, y_dev),
                        callbacks=cb)
