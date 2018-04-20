@@ -26,7 +26,7 @@ y_test = np.load('data/y_test.npy')
 
 
 
-adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
+adam = Adam(lr=0.01, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
 # nadam = Nadam(lr=0.002, beta_1=0.9, beta_2=0.999, epsilon=None, schedule_decay=0.004)
 
 # ner_model = BiLSTM_CRF(n_input_char=200, char_embedding_mat=char_embedding_mat,
