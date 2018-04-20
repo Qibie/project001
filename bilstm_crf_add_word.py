@@ -42,8 +42,8 @@ class BiLSTM_CRF():
 
 
         # self.build_simple()
-        # self.build()
-        self.build2()
+        self.build()
+        # self.build2()
         # self.build3()
         # self.build4()
         # self.build_attention()
@@ -137,15 +137,19 @@ class BiLSTM_CRF():
         concat = Concatenate(axis=-1)([bilstm, lstm])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
-        crf = CRF(units=self.n_entity, learn_mode='join',
-                  test_mode='viterbi', sparse_target=False)
-        output = crf(concat_drop)
+        # crf = CRF(units=self.n_entity, learn_mode='join',
+        #           test_mode='viterbi', sparse_target=False)
+        # output = crf(concat_drop)
+        output = TimeDistributed(Dense(self.n_entity, activation='softmax'))(concat_drop)
+        # crf = CRF(units=self.n_entity, learn_mode='join',
+        #       test_mode='viterbi', sparse_target=False)
+        # output = crf(bilstm)
+        #
 
         self.model = Model(inputs=[char_input, word_input],
                            outputs=output)
         self.model.compile(optimizer=self.optimizer,
-                           loss=crf.loss_function,
-                           metrics=[crf.accuracy])
+                           loss='categorical_crossentropy', metrics=['accuracy'])
         print(self.model.summary())
     def build2(self):
         # main
