@@ -35,11 +35,11 @@ adam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, epsilon=1e-08, clipvalue=0.01)
 #                        optimizer=adam, batch_size=32, epochs=500)
 ner_model = BiLSTM_CRF(n_input_char=200, char_embedding_mat=char_embedding_mat,
                        n_input_word=200, word_embedding_mat=word_embedding_mat,
-                       keep_prob=0.7, n_lstm=128, keep_prob_lstm=0.6, n_entity=7,
+                       keep_prob=0.7, n_lstm=256, keep_prob_lstm=0.6, n_entity=7,
                        optimizer=adam, batch_size=32, epochs=10,
                        n_filter=128, kernel_size=3)
 cp_folder, cp_file = 'checkpoints', 'bilstm_crf_add_word_weights_best_128.hdf5'
-log_filepath = os.getcwd() + '/logs/bilstm_crf_add_word_summaries'
+log_filepath = os.getcwd() + '/logs/concat_drop'
 
 cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
                       verbose=1, save_best_only=True, save_weights_only=True, mode='min'),
