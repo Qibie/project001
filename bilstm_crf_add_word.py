@@ -42,8 +42,8 @@ class BiLSTM_CRF():
 
 
         # self.build_simple()
-        self.build()
-        # self.build2()
+        # self.build()
+        self.build2()
         # self.build3()
         # self.build4()
         # self.build_attention()
@@ -351,7 +351,7 @@ class BiLSTM_CRF():
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
         self.model2.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs, validation_split=0.1,
+                        epochs=self.epochs, validation_data=(X_dev, y_dev),
                         callbacks=cb)
 
     def train3(self, X_train, y_train, X_dev, y_dev, cb):
