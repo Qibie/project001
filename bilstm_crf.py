@@ -22,7 +22,7 @@ class BiLSTM_CRF():
         self.optimizer = optimizer
         self.batch_size = batch_size
         self.epochs = epochs
-        self.build()
+        self.build_attention()
 
 
 
@@ -79,11 +79,12 @@ class BiLSTM_CRF():
                                  mask_zero=False,
                                  trainable=True)(char_input)
         char_drop=Dropout(self.keep_prob)(char_embed)
-        attention=self.attention_3d_block(char_drop)
-
+        #attention
+        attention_probs = Dense(int(char_drop.shape[2]), activation='softmax', name='attention_vec')(char_drop)
+        attention_mul = merge([char_drop, attention_probs], output_shape=32, name='attention_mul', mode='mul')
         blstm=Bidirectional(LSTM(self.n_lstm, return_sequences=True,
                                            dropout=self.keep_prob_lstm,
-                                           recurrent_dropout=self.keep_prob_lstm))(attention)
+                                           recurrent_dropout=self.keep_prob_lstm))(attention_mul)
 
         crf = CRF(units=self.n_entity, learn_mode='join',
                   test_mode='viterbi', sparse_target=False)

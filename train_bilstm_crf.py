@@ -24,7 +24,7 @@ ner_model = BiLSTM_CRF(n_input=200, n_vocab=char_embedding_mat.shape[0],
                        n_entity=7, optimizer='adam', batch_size=16, epochs=500)
 
 cp_folder, cp_file = 'checkpoints', 'bilstm_crf_weights_best.hdf5'
-log_filepath = '/home/curry/NER/logs/bilstm_crf_summaries'
+log_filepath = 'logs/bilstm_crf_summaries'
 
 cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
                       verbose=1, save_best_only=True, save_weights_only=True, mode='min'),
@@ -34,4 +34,4 @@ cb = [ModelCheckpoint(os.path.join(cp_folder, cp_file), monitor='val_loss',
       TensorBoard(log_dir=log_filepath, write_graph=True, write_images=True,
                   histogram_freq=1)]
 
-ner_model.train(X_train, y_train, X_dev, y_dev, cb)
+ner_model.train_attention(X_train, y_train, X_dev, y_dev, cb)

@@ -183,7 +183,7 @@ class BiLSTM_CRF():
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
         #attention
-        attention_probs = Dense(228, activation='softmax', name='attention_vec')(concat_drop)
+        attention_probs = Dense(int(concat_drop.shape[2]), activation='softmax', name='attention_vec')(concat_drop)
         attention_mul = merge([concat_drop, attention_probs],  name='attention_mul', mode='mul')
 
 

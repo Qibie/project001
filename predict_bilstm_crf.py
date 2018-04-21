@@ -106,11 +106,11 @@ def macro_evaluation(pred_entity, true_entity):
 
 if __name__ == '__main__':
 
-    char_embedding_mat = np.load('data_wiki/char_embedding_matrix.npy')
+    char_embedding_mat = np.load('data/char_embedding_matrix.npy')
 
-    X_test = np.load('data_wiki/X_test.npy')
+    X_test = np.load('data/X_test.npy')
     # print(X_test, X_test.shape)
-    y_test = np.load('data_wiki/y_test.npy')
+    y_test = np.load('data/y_test.npy')
 
     ## loss: 16.68228; 
     ## micro: precision:0.7741 recall:0.7641 F1:0.7691 LSTM
