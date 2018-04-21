@@ -155,13 +155,20 @@ class BiLSTM_CRF():
     def build2(self):
         # main
         char_input = Input(shape=(self.n_input_char,))
+
+
+
+
         char_embed = Embedding(input_dim=self.n_vocab_char,
                                output_dim=self.n_embed_char,
                                input_length=self.n_input_char,
                                weights=[self.char_embedding_mat],
                                mask_zero=False,
-                               trainable=True)(char_input)
+                               trainable=False)(char_input)
+
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        attention_probs = Dense(int(char_embed_drop.shape[2]), activation='softmax', name='attention_vec')(char_embed_drop)
+        attention_mul = merge([char_embed_drop, attention_probs], output_shape=32, name='attention_mul', mode='mul')
         # auxiliary
         word_input = Input(shape=(self.n_input_word,))
         word_embed = Embedding(input_dim=self.n_vocab_word,
@@ -169,7 +176,7 @@ class BiLSTM_CRF():
                                input_length=self.n_input_word,
                                weights=[self.word_embedding_mat],
                                mask_zero=False,
-                               trainable=True)(word_input)
+                               trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         # 使用CNN提取word的n_gram特征
         word_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size,
@@ -179,19 +186,14 @@ class BiLSTM_CRF():
         word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
 
         # concatenation
-        concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
+        concat = Concatenate(axis=-1)([attention_mul, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
-
-        #attention
-        attention_probs = Dense(int(concat_drop.shape[2]), activation='softmax', name='attention_vec')(concat_drop)
-        attention_mul = merge([concat_drop, attention_probs],  name='attention_mul', mode='mul')
-
 
         bilstm = Bidirectional(GRU(units=self.n_lstm,
                                 return_sequences=True,
                                 dropout=self.keep_prob_lstm,
                                 recurrent_dropout=self.keep_prob_lstm)
-                           )(attention_mul)
+                           )(concat_drop)
         output = TimeDistributed(Dense(self.n_entity, activation='softmax'))(bilstm)
         crf = CRF(units=self.n_entity, learn_mode='join',
               test_mode='viterbi', sparse_target=False)
