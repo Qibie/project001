@@ -160,7 +160,7 @@ class BiLSTM_CRF():
                                input_length=self.n_input_char,
                                weights=[self.char_embedding_mat],
                                mask_zero=False,
-                               trainable=False)(char_input)
+                               trainable=True)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
         # auxiliary
         word_input = Input(shape=(self.n_input_word,))
@@ -169,14 +169,14 @@ class BiLSTM_CRF():
                                input_length=self.n_input_word,
                                weights=[self.word_embedding_mat],
                                mask_zero=False,
-                               trainable=False)(word_input)
+                               trainable=True)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         # 使用CNN提取word的n_gram特征
         word_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size,
                            strides=1, padding='same',
                            kernel_initializer='he_normal')(word_embed_drop)
-        # word_conv = BatchNormalization(axis=-1)(word_conv)
-        # word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
+        word_conv = BatchNormalization(axis=-1)(word_conv)
+        word_conv = LeakyReLU(alpha=1 / 5.5)(word_conv)
 
         # concatenation
         concat = Concatenate(axis=-1)([char_embed, word_conv])
@@ -188,14 +188,14 @@ class BiLSTM_CRF():
                                 recurrent_dropout=self.keep_prob_lstm)
                            )(concat_drop)
         output = TimeDistributed(Dense(self.n_entity, activation='softmax'))(bilstm)
-        # crf = CRF(units=self.n_entity, learn_mode='join',
-        #       test_mode='viterbi', sparse_target=False)
-        # output = crf(bilstm)
+        crf = CRF(units=self.n_entity, learn_mode='join',
+              test_mode='viterbi', sparse_target=False)
+        output = crf(bilstm)
         #
         self.model2 = Model(inputs=[char_input, word_input],
                         outputs=output)
         self.model2.compile(optimizer=self.optimizer,
-                            loss='categorical_crossentropy', metrics=['accuracy'])
+                            loss=crf.loss_function ,metrics=[crf.accuracy])
         print(self.model2.summary())
 
 

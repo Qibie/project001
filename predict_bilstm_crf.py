@@ -128,7 +128,7 @@ if __name__ == '__main__':
                            n_entity=7, optimizer='adam', batch_size=16, epochs=500)
     """加载model"""
 
-    model_file = '/home/curry/NER/project001/checkpoints/bilstm_crf_weights_best_wiki.hdf5'
+    model_file = 'checkpoints/bilstm_crf_weights_best_wiki.hdf5'
     ner_model.model.load_weights(model_file)
 
 
