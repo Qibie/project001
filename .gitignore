@@ -14,3 +14,10 @@ build
 
 #embeddings
 *.npy
+
+
+#logs
+
+logs
+*.CURRY
+*.GPU-server
