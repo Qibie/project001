@@ -194,7 +194,7 @@ class BiLSTM_CRF():
                            )(concat_drop)
 
         attention_probs = Dense(int(bilstm.shape[2]), activation='softmax', name='attention_vec')(bilstm)
-        attention_mul = merge([concat_drop, attention_probs], name='attention_mul', mode='mul')
+        attention_mul = merge([bilstm, attention_probs], name='attention_mul', mode='mul')
         crf = CRF(units=self.n_entity, learn_mode='join',
               test_mode='viterbi', sparse_target=False)
         output = crf(attention_mul)
