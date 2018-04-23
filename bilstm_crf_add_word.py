@@ -193,11 +193,11 @@ class BiLSTM_CRF():
                                 recurrent_dropout=self.keep_prob_lstm)
                            )(concat_drop)
 
-        attention_probs = Dense(int(bilstm.shape[2]), activation='softmax', name='attention_vec')(bilstm)
-        attention_mul = merge([bilstm, attention_probs], name='attention_mul', mode='mul')
+        attention = self.attention_3d_block(bilstm)
+        attention_drop = TimeDistributed(Dropout(self.keep_prob))(attention)
         crf = CRF(units=self.n_entity, learn_mode='join',
               test_mode='viterbi', sparse_target=False)
-        output = crf(attention_mul)
+        output = crf(attention_drop)
         #
         self.model2 = Model(inputs=[char_input, word_input],
                         outputs=output)
