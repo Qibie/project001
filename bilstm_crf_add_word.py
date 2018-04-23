@@ -181,21 +181,23 @@ class BiLSTM_CRF():
         # concatenation
         concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
-
-        #attention
-        attention_probs = Dense(int(concat_drop.shape[2]), activation='softmax', name='attention_vec')(concat_drop)
-        attention_mul = merge([concat_drop, attention_probs],  name='attention_mul', mode='mul')
+        #
+        # #attention
+        # attention_probs = Dense(int(concat_drop.shape[2]), activation='softmax', name='attention_vec')(concat_drop)
+        # attention_mul = merge([concat_drop, attention_probs],  name='attention_mul', mode='mul')
 
 
         bilstm = Bidirectional(GRU(units=self.n_lstm,
                                 return_sequences=True,
                                 dropout=self.keep_prob_lstm,
                                 recurrent_dropout=self.keep_prob_lstm)
-                           )(attention_mul)
-        output = TimeDistributed(Dense(self.n_entity, activation='softmax'))(bilstm)
+                           )(concat_drop)
+
+        attention_probs = Dense(int(bilstm.shape[2]), activation='softmax', name='attention_vec')(bilstm)
+        attention_mul = merge([concat_drop, attention_probs], name='attention_mul', mode='mul')
         crf = CRF(units=self.n_entity, learn_mode='join',
               test_mode='viterbi', sparse_target=False)
-        output = crf(bilstm)
+        output = crf(attention_mul)
         #
         self.model2 = Model(inputs=[char_input, word_input],
                         outputs=output)
