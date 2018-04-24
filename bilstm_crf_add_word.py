@@ -40,10 +40,9 @@ class BiLSTM_CRF():
         self.batch_size = batch_size
         self.epochs = epochs
 
-
         # self.build_simple()
         # self.build()
-        self.build2()
+        self.build_char_cnn_word_rnn()
         # self.build3()
         # self.build4()
         # self.build_attention()
@@ -64,8 +63,6 @@ class BiLSTM_CRF():
         a_probs = Permute((2, 1), name='attention_vec')(a)
         output_attention_mul = merge([inputs, a_probs], name='attention_mul', mode='mul')
         return output_attention_mul
-
-
 
     def build_simple(self):
         # main
@@ -89,7 +86,7 @@ class BiLSTM_CRF():
         # concatenation
         concat = Concatenate(axis=-1)([char_embed_drop, word_embed_drop])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
-        blstm=Bidirectional(LSTM(self.n_lstm, return_sequences=True,
+        blstm = Bidirectional(LSTM(self.n_lstm, return_sequences=True,
                                    dropout=self.keep_prob_lstm,
                                    recurrent_dropout=self.keep_prob_lstm))(concat_drop)
 
@@ -98,12 +95,11 @@ class BiLSTM_CRF():
         output = crf(blstm)
 
         self.model_simple = Model(inputs=[char_input, word_input],
-                           outputs=output)
+                                  outputs=output)
         self.model_simple.compile(optimizer=self.optimizer,
-                           loss=crf.loss_function,
-                           metrics=[crf.accuracy])
+                                  loss=crf.loss_function,
+                                  metrics=[crf.accuracy])
         print(self.model_simple.summary())
-
 
     def build(self):
         # main
@@ -129,8 +125,8 @@ class BiLSTM_CRF():
                                trainable=False)(word_input)
         word_embed_drop = Dropout(self.keep_prob)(word_embed)
         lstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
-                                  dropout=self.keep_prob_lstm,
-                                  recurrent_dropout=self.keep_prob_lstm)
+                                 dropout=self.keep_prob_lstm,
+                                 recurrent_dropout=self.keep_prob_lstm)
                              )(word_embed_drop)
 
         # concatenation
@@ -162,6 +158,12 @@ class BiLSTM_CRF():
                                mask_zero=False,
                                trainable=False)(char_input)
         char_embed_drop = Dropout(self.keep_prob)(char_embed)
+
+        # #attention
+        attention_probs = Dense(int(char_embed_drop.shape[2]), activation='softmax', name='attention_vec')(
+            char_embed_drop)
+        attention_mul = merge([char_embed_drop, attention_probs], name='attention_mul', mode='mul')
+
         # auxiliary
         word_input = Input(shape=(self.n_input_word,))
         word_embed = Embedding(input_dim=self.n_vocab_word,
@@ -182,29 +184,64 @@ class BiLSTM_CRF():
         concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
         #
-        # #attention
-        # attention_probs = Dense(int(concat_drop.shape[2]), activation='softmax', name='attention_vec')(concat_drop)
-        # attention_mul = merge([concat_drop, attention_probs],  name='attention_mul', mode='mul')
-
 
         bilstm = Bidirectional(GRU(units=self.n_lstm,
-                                return_sequences=True,
-                                dropout=self.keep_prob_lstm,
-                                recurrent_dropout=self.keep_prob_lstm)
-                           )(concat_drop)
-
-        attention = self.attention_3d_block(bilstm)
-        attention_drop = TimeDistributed(Dropout(self.keep_prob))(attention)
+                                   return_sequences=True,
+                                   dropout=self.keep_prob_lstm,
+                                   recurrent_dropout=self.keep_prob_lstm)
+                               )(concat_drop)
         crf = CRF(units=self.n_entity, learn_mode='join',
-              test_mode='viterbi', sparse_target=False)
-        output = crf(attention_drop)
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(bilstm)
         #
         self.model2 = Model(inputs=[char_input, word_input],
-                        outputs=output)
+                            outputs=output)
         self.model2.compile(optimizer=self.optimizer,
-                            loss=crf.loss_function ,metrics=[crf.accuracy])
+                            loss=crf.loss_function, metrics=[crf.accuracy])
         print(self.model2.summary())
 
+    def build_char_cnn_word_rnn(self):
+        # main
+        char_input = Input(shape=(self.n_input_char,), name='main_input')
+        char_embed = Embedding(input_dim=self.n_vocab_char,
+                               output_dim=self.n_embed_char,
+                               weights=[self.char_embedding_mat],
+                               input_length=self.n_input_char,
+                               mask_zero=False,
+                               trainable=True)(char_input)
+        char_embed_drop = Dropout(self.keep_prob)(char_embed)
+        char_conv = Conv1D(self.n_filter, kernel_size=self.kernel_size,
+                           strides=1, padding='same',
+                           kernel_initializer='he_normal')(char_embed_drop)
+        char_conv = BatchNormalization(axis=-1)(char_conv)
+        char_conv = LeakyReLU(alpha=1 / 5.5)(char_conv)
+
+        # auxiliary
+        word_input = Input(shape=(self.n_input_word,))
+        word_embed = Embedding(input_dim=self.n_vocab_word,
+                               output_dim=self.n_embed_word,
+                               input_length=self.n_input_word,
+                               weights=[self.word_embedding_mat],
+                               mask_zero=True,
+                               trainable=True)(word_input)
+        word_embed_drop = Dropout(self.keep_prob)(word_embed)
+        bilstm = Bidirectional(GRU(self.n_lstm, return_sequences=True,
+                                   dropout=self.keep_prob_lstm,
+                                   recurrent_dropout=self.keep_prob_lstm)
+                               )(word_embed_drop)
+        # concatenation
+        concat = Concatenate(axis=-1)([char_conv, bilstm])
+        concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
+
+        crf = CRF(units=self.n_entity, learn_mode='join',
+                  test_mode='viterbi', sparse_target=False)
+        output = crf(concat_drop)
+        self.model_char_cnn_word_rnn = Model(inputs=[char_input, word_input],
+                                             outputs=output)
+        self.model_char_cnn_word_rnn.compile(optimizer=self.optimizer,
+                                             loss=crf.loss_function,
+                                             metrics=[crf.accuracy])
+        print(self.model_char_cnn_word_rnn.summary())
 
     def build3(self):
         # main
@@ -323,8 +360,8 @@ class BiLSTM_CRF():
         concat = Concatenate(axis=-1)([char_embed_drop, word_conv])
         concat_drop = TimeDistributed(Dropout(self.keep_prob))(concat)
 
-       #attention = self.attention_3d_block(concat_drop)
-       # attention_drop = TimeDistributed(Dropout(self.keep_prob))(attention)
+        # attention = self.attention_3d_block(concat_drop)
+        # attention_drop = TimeDistributed(Dropout(self.keep_prob))(attention)
 
         bilstm = Bidirectional(LSTM(units=self.n_lstm,
                                     return_sequences=True,
@@ -342,19 +379,15 @@ class BiLSTM_CRF():
                                      loss=crf.loss_function,
                                      metrics=[crf.accuracy])
 
-
     def train_simple(self, X_train, y_train, X_dev, y_dev, cb):
         self.model_simple.fit(X_train, y_train, batch_size=self.batch_size,
-                        epochs=self.epochs,validation_split=0.3,
-                        callbacks=cb)
+                              epochs=self.epochs, validation_split=0.3,
+                              callbacks=cb)
         self.model_simple.save('checkpoints/model.hdf5')
-
-
-
 
     def train(self, X_train, y_train, X_dev, y_dev, cb):
         self.model.fit(X_train, y_train, batch_size=self.batch_size,
-                       epochs=self.epochs,validation_split=0.3,
+                       epochs=self.epochs, validation_split=0.3,
                        callbacks=cb)
 
     def train2(self, X_train, y_train, X_dev, y_dev, cb):
@@ -376,3 +409,8 @@ class BiLSTM_CRF():
         self.model_attention.fit(X_train, y_train, batch_size=self.batch_size,
                                  epochs=self.epochs, validation_data=(X_dev, y_dev),
                                  callbacks=cb)
+
+    def train_char_cnn_word_rnn(self, X_train, y_train, X_dev, y_dev, cb):
+        self.model_char_cnn_word_rnn.fit(X_train, y_train, batch_size=self.batch_size,
+                                         epochs=self.epochs, validation_data=(X_dev, y_dev),
+                                         callbacks=cb)
