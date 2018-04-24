@@ -410,7 +410,7 @@ class BiLSTM_CRF():
                                  epochs=self.epochs, validation_data=(X_dev, y_dev),
                                  callbacks=cb)
 
-    def train_char_cnn_word_rnn(self, X_train, y_train, X_dev, y_dev, cb):
+    def train_char_cnn_word_rnn(self, X_train, y_train, cb):
         self.model_char_cnn_word_rnn.fit(X_train, y_train, batch_size=self.batch_size,
-                                         epochs=self.epochs, validation_data=(X_dev, y_dev),
+                                         epochs=self.epochs, validation_split=0.2,
                                          callbacks=cb)
